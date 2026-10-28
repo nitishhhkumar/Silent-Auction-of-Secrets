@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Silent Auction of Secrets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f2fb;--paper:#fff7e3;--ink:#241a38;--wax:#c42b3f;--brass:#e0a93b;--deep:#9a6a10;--text:#241a38;--mut:#6b5d87;--line:rgba(36,26,56,.16);--card:#fff;--good:#1f8a4c;--bad:#c42b3f;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;color:var(--text);font-family:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;min-height:100vh;background:radial-gradient(ellipse 90% 45% at 50% -8%,#e1d4fa 0%,transparent 70%),var(--bg);background-attachment:fixed}
+#app{max-width:520px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 18px 56px}
+h1{font-weight:800;font-size:46px;line-height:.92;letter-spacing:-2px;margin:6px 0 10px;color:#2b1650}
+.sub{font-size:18px;color:var(--deep);margin:0 0 26px;font-weight:500}
+.mini{font-weight:700;font-size:15px;color:var(--mut);margin-bottom:18px}
+h2{font-size:22px;font-weight:700;letter-spacing:-.4px;margin:0 0 12px}
+p{line-height:1.55;color:var(--mut);margin:0 0 14px}
+b{color:var(--text)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 2px 10px rgba(36,26,56,.06)}
+.secret{position:relative;background-color:var(--paper);background-image:repeating-linear-gradient(transparent 0 33px,rgba(36,26,56,.12) 33px 34px);color:var(--ink);font-family:'Caveat','Segoe Script',cursive;font-size:30px;line-height:34px;padding:30px 24px 24px;margin:20px 0 24px;border-radius:3px;transform:rotate(-1.2deg);box-shadow:0 14px 30px rgba(36,26,56,.25)}
+.secret::before{content:'';position:absolute;top:-16px;right:24px;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ec5d70,var(--wax) 60%,#7d1424);box-shadow:0 3px 8px rgba(0,0,0,.45)}
+.secret.drop{animation:drop .65s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes drop{from{transform:translateY(-50px) rotate(5deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.secret.drop{animation:none}}
+input,textarea{width:100%;font:inherit;font-size:17px;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fbfaff;color:var(--text);margin-bottom:10px}
+input::placeholder,textarea::placeholder{color:var(--mut)}
+input:focus,textarea:focus{outline:none;border-color:var(--brass)}
+textarea{min-height:120px;resize:vertical;font-family:'Caveat','Segoe Script',cursive;font-size:26px;line-height:1.2}
+#bx{font-size:46px;font-weight:800;text-align:center;padding:10px}
+#jc{text-transform:uppercase;letter-spacing:6px;text-align:center;font-weight:700}
+button{font:inherit;font-weight:700;font-size:17px;padding:14px 16px;border-radius:14px;border:0;background:var(--brass);color:#2a1a05;cursor:pointer;width:100%;margin-top:8px;box-shadow:0 4px 0 #94691b;transition:transform .08s,box-shadow .08s}
+button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #94691b}
+button.alt{background:#fff;color:var(--text);border:1.5px solid var(--line);box-shadow:none}
+button.alt:hover{border-color:var(--brass)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #2b1650;outline-offset:2px}
+.grid{display:grid;gap:8px}
+.pts{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.pts:last-child{border:0}
+.pts b{color:var(--deep);font-size:20px;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;background:var(--brass);color:#2a1a05;border-radius:6px;padding:3px 11px;font-weight:800;font-size:14px}
+.code{font-size:60px;letter-spacing:10px;text-align:center;font-weight:800;color:var(--paper);background:#2b1650;border-radius:14px;padding:8px 0 8px 10px;margin:12px 0;box-shadow:inset 0 0 0 3px #2b1650,inset 0 0 0 5px var(--brass)}
+.how{margin:0 0 14px;padding-left:20px;color:var(--mut);line-height:1.55}.how li{margin-bottom:6px}.how b{color:var(--text)}
+.sig{max-width:520px;margin:-24px auto 0;padding:0 18px 36px;text-align:right;font-family:'Caveat','Segoe Script',cursive;font-size:30px;font-weight:700;color:var(--deep);transform:rotate(-3deg)}
+.good{color:var(--good)}.bad{color:var(--bad)}.me{font-weight:800}
+</style>
+</head>
+<body>
+<div id="app"><p>Loading…</p></div>
+<div class="sig">Made by Nitish</div>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+var A=document.getElementById('app'),V=null,G=null,peer=null,conn=null,CODE='',MYID='',msg='',mode='home';
+var lastShown=-1,PFX='sas-secrets-',START=100;
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function rid(){return Math.random().toString(36).slice(2,10)}
+function mkCode(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ',s='';for(var i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+function $(i){return document.getElementById(i)}
+
+/* ================= HOST (authoritative game logic) ================= */
+function P(id){return G.players.filter(function(p){return p.id===id})[0]}
+function author(){return G.order[G.round]}
+function newG(){return {phase:'lobby',players:[],order:[],round:0,win:null,res:null,bids:null}}
+function hostGame(name){
+  mode='host';CODE=mkCode();MYID='host';
+  G=newG();G.players.push({id:'host',name:name,pts:START,secret:'',bid:null,conn:null});
+  peer=new Peer(PFX+CODE);
+  peer.on('open',function(){broadcast()});
+  peer.on('error',function(e){
+    if(e.type==='unavailable-id'){peer.destroy();hostGame(name)}
+    else{msg='Connection problem: '+e.type;render()}
+  });
+  peer.on('connection',function(c){
+    c.on('data',function(m){
+      if(m.t==='join'){
+        var p=P(m.pid);
+        if(p){p.conn=c;p.name=m.name||p.name}
+        else if(G.phase!=='lobby'){c.send({t:'err',m:'Game already started.'});return}
+        else if(G.players.some(function(x){return x.name.toLowerCase()===m.name.toLowerCase()})){c.send({t:'err',m:'That name is taken.'});return}
+        else G.players.push({id:m.pid,name:m.name,pts:START,secret:'',bid:null,conn:c});
+        c.pid=m.pid;broadcast();
+      } else if(c.pid) act(c.pid,m);
+    });
+  });
+}
+function act(pid,m){
+  var me=P(pid),h=pid==='host',n=G.players.length;
+  if(!me)return;
+  if(m.t==='start'&&h&&G.phase==='lobby'&&n>=3){G.phase='write';G.order=G.players.map(function(p){return p.id});G.players.forEach(function(p){p.pts=START;p.secret='';p.bid=null})}
+  else if(m.t==='secret'&&G.phase==='write'&&m.text&&!me.secret)me.secret=String(m.text).slice(0,240);
+  else if(m.t==='auction'&&h&&G.phase==='write'&&me.secret&&G.players.filter(function(p){return p.secret}).length>=3){
+    G.players.filter(function(p){return !p.secret}).forEach(function(p){if(p.conn&&p.conn.open)p.conn.send({t:'err',m:'You were removed from the game because you hadn’t submitted a secret in time.'})});
+    G.players=G.players.filter(function(p){return p.secret});G.order=shuffle(G.players.map(function(p){return p.id}));G.round=0;G.phase='auction';G.win=null;G.res=null;G.bids=null;G.players.forEach(function(p){p.bid=null})}
+  else if(m.t==='bid'&&G.phase==='auction'&&pid!==author()){
+    var v=parseInt(m.v,10);if(isNaN(v)||v<0||v>me.pts)return;
+    me.bid={r:G.round,v:v};
+    var bd=G.order.filter(function(i){return i!==author()});
+    if(bd.every(function(i){var b=P(i).bid;return b&&b.r===G.round}))resolve();
+  }
+  else if(m.t==='force'&&h&&G.phase==='auction'){
+    G.order.forEach(function(i){if(i!==author()){var q=P(i);if(!(q.bid&&q.bid.r===G.round))q.bid={r:G.round,v:0}}});
+    resolve();
+  }
+  else if(m.t==='guess'&&G.phase==='guess'&&pid===G.win.w&&P(m.g)&&m.g!==pid){
+    var ok=m.g===author(),b=G.win.b;
+    if(ok)P(pid).pts+=b;else{P(pid).pts-=b;P(author()).pts+=b}
+    G.res={g:m.g,ok:ok};G.phase='result';
+  }
+  else if(m.t==='next'&&h&&G.phase==='result'){
+    if(G.round+1>=G.order.length)G.phase='end';
+    else{G.round++;G.phase='auction';G.win=null;G.res=null;G.bids=null}
+  }
+  else if(m.t==='again'&&h&&G.phase==='end'){G.phase='lobby';G.players.forEach(function(p){p.pts=START;p.secret='';p.bid=null});G.order=[]}
+  broadcast();
+}
+function resolve(){
+  var bd=G.order.filter(function(i){return i!==author()}),bm={},mx=0;
+  bd.forEach(function(i){bm[i]=P(i).bid.v;if(bm[i]>mx)mx=bm[i]});
+  var top=bd.filter(function(i){return bm[i]===mx});
+  G.bids=bm;
+  if(mx>0){G.win={w:top[Math.floor(Math.random()*top.length)],b:mx};G.phase='guess'}
+  else{G.win=null;G.res={none:true};G.phase='result'}
+}
+function view(pid){
+  var me=P(pid),ph=G.phase,au=G.order[G.round];
+  var v={phase:ph,code:CODE,me:pid,isHost:pid==='host',round:G.round,total:G.order.length,
+    players:G.players.map(function(p){return {id:p.id,name:p.name,pts:p.pts,ready:!!p.secret,bid:!!(p.bid&&p.bid.r===G.round)}})};
+  v.mySecret=!!me.secret;
+  if(pid==='host'&&ph==='write')v.pending=G.players.filter(function(p){return !p.secret}).map(function(p){return p.name});
+  if(ph==='auction'||ph==='guess'||ph==='result'){
+    v.secret=P(au).secret;v.isAuthor=pid===au;
+    v.myBid=(me.bid&&me.bid.r===G.round)?me.bid.v:null;v.win=G.win;v.res=G.res;
+    if(pid==='host'&&ph==='auction')v.pending=G.order.filter(function(i){var b=P(i).bid;return i!==au&&!(b&&b.r===G.round)}).map(function(i){return P(i).name});
+  }
+  if(ph==='result'){v.author=au;v.bids=G.bids}
+  return v;
+}
+function broadcast(){
+  G.players.forEach(function(p){if(p.conn&&p.conn.open)p.conn.send({t:'view',v:view(p.id)})});
+  V=view('host');render();
+}
+
+/* ================= CLIENT ================= */
+function joinGame(name,code,pid){
+  mode='client';CODE=code;MYID=pid;msg='Connecting…';render();
+  localStorage.setItem('sas',JSON.stringify({name:name,code:code,pid:pid}));
+  peer=new Peer();
+  peer.on('open',function(){
+    conn=peer.connect(PFX+code,{reliable:true});
+    conn.on('open',function(){conn.send({t:'join',name:name,pid:pid})});
+    conn.on('data',function(m){
+      if(m.t==='view'){V=m.v;msg='';render()}
+      else if(m.t==='err'){msg=m.m;localStorage.removeItem('sas');V=null;mode='home';render()}
+    });
+    conn.on('close',function(){msg='Lost connection to the host. Refresh to rejoin.';render()});
+  });
+  peer.on('error',function(e){
+    msg=e.type==='peer-unavailable'?'No game found with that code.':'Connection problem: '+e.type;
+    if(e.type==='peer-unavailable')localStorage.removeItem('sas');
+    mode='home';V=null;render();
+  });
+}
+function send(m){if(mode==='host')act('host',m);else if(conn&&conn.open)conn.send(m)}
+
+/* ================= UI ================= */
+function board(){return '<div class="card">'+V.players.map(function(p){return '<div class="pts"><span class="'+(p.id===V.me?'me':'')+'">'+esc(p.name)+(p.id===V.me?' (you)':'')+'</span><b>'+p.pts+'</b></div>'}).join('')+'</div>'}
+function nm(id){var p=V.players.filter(function(x){return x.id===id})[0];return p?esc(p.name):'?'}
+function w(t){return '<p>'+t+'</p>'}
+function view_(){
+  var big=!V||V.phase==='lobby';var h=big?'<h1>Silent Auction<br>of Secrets</h1><p class="sub">Bid on secrets. Guess who wrote them.</p>':'<div class="mini">🤫 Silent Auction of Secrets</div>';
+  if(!V){
+    h+=(msg?'<p class="bad">'+esc(msg)+'</p>':'')+'<div class="card"><h2>Host a game</h2><ol class="how"><li>Enter your name and press <b>Create game</b>. You’ll get a 4-letter code.</li><li>Share the code with your friends. You need <b>3 or more players</b>.</li><li>Keep this tab open the whole game. You run it.</li><li>When everyone has joined, press <b>Start game</b>. Once all secrets are in, press <b>Start auction</b>.</li></ol><input id="hn" maxlength="16" placeholder="Your name"><button onclick="doHost()">Create game</button></div><div class="card"><h2>Join a game</h2><input id="jn" maxlength="16" placeholder="Your name"><input id="jc" maxlength="4" placeholder="CODE"><button class="alt" onclick="doJoin()">Join</button></div>';
+    return h;
+  }
+  var ph=V.phase;
+  if(msg)h+='<p class="bad">'+esc(msg)+'</p>';
+  if(ph==='lobby'){
+    h+='<div class="card"><p style="text-align:center;margin:0">Game code</p><div class="code">'+esc(V.code)+'</div><p style="text-align:center;margin:0">Tell your friends to open this site and enter the code.</p></div>';
+    h+='<div class="card"><h2>Players ('+V.players.length+')</h2>'+V.players.map(function(p){return '<div class="pts"><span>'+esc(p.name)+(p.id===V.me?' (you)':'')+(p.id==='host'?' 👑':'')+'</span></div>'}).join('')+'</div>';
+    if(V.isHost)h+='<button onclick="send({t:\'start\'})" '+(V.players.length<3?'disabled':'')+'>Start game (3+ players)</button><div class="card" style="margin-top:14px"><b>Rules</b><p style="margin-top:6px">1. Everyone writes one anonymous secret.<br>2. Secrets are shown one at a time. Everyone except the author places a hidden bid (0 = pass).<br>3. The highest bidder must guess who wrote it.<br>4. Right guess: bidder gains the bid. Wrong guess: bidder loses it and the author gains it.<br>Everyone starts with 100 points.</p></div><p>Keep this tab open: you are the host, and the game ends if you close it.</p>';
+    else h+=w('Waiting for the host to start…');
+    return h;
+  }
+  if(ph==='write'){
+    var done=V.players.filter(function(p){return p.ready}).length;
+    h+='<h2>Write your secret</h2>';
+    if(V.mySecret)h+='<div class="card"><p style="margin:0">🔒 Your secret is locked in.</p></div>'+w(done+' / '+V.players.length+' players ready.');
+    else h+='<p>A short secret or confession. Don’t make it so personal that everyone knows it’s you!</p><textarea id="sx" maxlength="240" placeholder="I once…"></textarea><button onclick="doSecret()">Lock it in 🔒</button>';
+    if(V.isHost){
+      var pn=V.pending||[];
+      if(pn.length)h+='<div class="card"><b>Still writing:</b><p style="margin:6px 0 0">'+pn.map(esc).join(', ')+'</p><p style="margin:6px 0 0">If you start now, they will be removed from the game.</p></div>';
+      h+='<button onclick="'+(pn.length?'if(confirm(\'Start now? '+pn.length+' player(s) without a secret will be removed.\'))':'')+'send({t:\'auction\'})" '+((V.mySecret&&done>=3)?'':'disabled')+'>'+(pn.length?'Start auction without '+pn.length+' player'+(pn.length>1?'s':''):'Start auction')+'</button>';
+      if(!V.mySecret)h+=w('Lock in your own secret first.');
+      else if(done<3)h+=w('At least 3 players need a secret.');
+    }
+    return h;
+  }
+  if(ph==='end'){
+    var s=V.players.slice().sort(function(a,b){return b.pts-a.pts});
+    h+='<h2>🏆 Final leaderboard</h2><p>Top spy (or best liar): <b>'+esc(s[0].name)+'</b></p><div class="card">'+s.map(function(p,k){return '<div class="pts"><span class="'+(p.id===V.me?'me':'')+'">'+(k+1)+'. '+esc(p.name)+'</span><b>'+p.pts+'</b></div>'}).join('')+'</div>';
+    if(V.isHost)h+='<button onclick="send({t:\'again\'})">Play again</button>';
+    return h;
+  }
+  var dr=(lastShown!==V.round)?' drop':'';lastShown=V.round;h+='<span class="tag">Lot '+(V.round+1)+' of '+V.total+'</span><div class="secret'+dr+'">'+esc(V.secret)+'</div>';
+  var me=V.players.filter(function(p){return p.id===V.me})[0];
+  if(ph==='auction'){
+    var cnt=V.players.filter(function(p){return p.bid}).length;
+    if(V.isAuthor)h+=w('This one is yours 😏 Keep a poker face. Waiting for bids ('+cnt+' / '+(V.total-1)+').');
+    else if(V.myBid!==null)h+=w('Bid locked in: <b>'+V.myBid+'</b>. Waiting for others ('+cnt+' / '+(V.total-1)+').');
+    else h+='<p>Place your hidden bid. You have <b>'+me.pts+'</b> points. 0 = pass.</p><input id="bx" type="number" inputmode="numeric" min="0" max="'+me.pts+'" value="0"><button onclick="doBid('+me.pts+')">Place bid 🔨</button>';
+    if(V.isHost&&V.pending&&V.pending.length)h+='<div class="card"><b>Still waiting for:</b><p style="margin:6px 0 0">'+V.pending.map(esc).join(', ')+'</p><button class="alt" onclick="if(confirm(\'Continue now? Anyone who hasn’t bid will count as 0.\'))send({t:\'force\'})">Continue without them (bid = 0)</button></div>';
+    return h+board();
+  }
+  if(ph==='guess'){
+    h+='<div class="card"><b>🔨 '+nm(V.win.w)+'</b> won the auction with a bid of <b>'+V.win.b+'</b>.</div>';
+    if(V.me===V.win.w)h+='<p>Who wrote this secret?</p><div class="grid">'+V.players.filter(function(p){return p.id!==V.me}).map(function(p){return '<button class="alt" onclick="send({t:\'guess\',g:\''+p.id+'\'})">'+esc(p.name)+'</button>'}).join('')+'</div>';
+    else h+=w('Waiting for '+nm(V.win.w)+' to guess…');
+    return h+board();
+  }
+  if(ph==='result'){
+    var x=V.res;
+    if(x.none)h+='<div class="card">Nobody bid. The secret stays safe! It was written by <b>'+nm(V.author)+'</b>.</div>';
+    else if(x.ok)h+='<div class="card"><b class="good">✅ Correct!</b><br>'+nm(V.win.w)+' caught '+nm(V.author)+'. +'+V.win.b+' points.</div>';
+    else h+='<div class="card"><b class="bad">❌ Wrong guess!</b><br>'+nm(V.win.w)+' said '+nm(x.g)+', but it was '+nm(V.author)+'. '+nm(V.win.w)+' −'+V.win.b+', '+nm(V.author)+' +'+V.win.b+'.</div>';
+    h+='<div class="card"><b>All bids</b>'+Object.keys(V.bids).map(function(i){return '<div class="pts"><span>'+nm(i)+'</span><b>'+V.bids[i]+'</b></div>'}).join('')+'</div>'+board();
+    if(V.isHost)h+='<button onclick="send({t:\'next\'})">'+(V.round+1<V.total?'Next secret →':'Final results 🏆')+'</button>';
+    else h+=w('Waiting for the host to continue…');
+    return h;
+  }
+  return h;
+}
+function render(){
+  var keep={};['hn','jn','jc','sx','bx'].forEach(function(k){var e=$(k);if(e)keep[k]=[e.value,document.activeElement===e]});
+  A.innerHTML=view_();
+  Object.keys(keep).forEach(function(k){var e=$(k);if(e){e.value=keep[k][0];if(keep[k][1])e.focus()}});
+}
+function doHost(){var n=$('hn').value.trim();if(!n)return;msg='';hostGame(n)}
+function doJoin(){var n=$('jn').value.trim(),c=$('jc').value.trim().toUpperCase();if(!n||c.length!==4){msg='Enter your name and the 4-letter code.';render();return}
+  joinGame(n,c,rid())}
+function doSecret(){var t=$('sx').value.trim();if(t)send({t:'secret',text:t})}
+function doBid(max){var v=parseInt($('bx').value,10);if(isNaN(v)||v<0||v>max){alert('Enter a bid between 0 and '+max);return}send({t:'bid',v:v})}
+
+try{var sv=JSON.parse(localStorage.getItem('sas')||'null');if(sv)joinGame(sv.name,sv.code,sv.pid);else render()}catch(e){render()}
+</script>
+</body>
+</html>
